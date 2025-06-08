@@ -7,7 +7,7 @@
 ## ✨ Features
 
 - 🌐 **Multi-Model Support**: 50+ AI models through OpenRouter
-- 🎯 **Smart Action System**: Nested action tree structure
+- 🎯 **Simple Action System**: Flat action structure for easy management
 - 🔍 **Automatic Intent Detection**: Automatic action determination from user input
 - 📝 **Zod Schema Validation**: Type-safe input validation
 - 🚀 **TypeScript**: Full type safety
@@ -31,27 +31,25 @@ import { z } from 'zod';
 
 // Define your actions
 const actions = {
-  weather: {
-    getCurrentWeather: {
-      call: async (input: { city: string }) => {
-        // Real weather API call
-        return `Weather for ${input.city}: 22°C, sunny`;
-      },
-      schema: z.object({
-        city: z.string(),
-      }),
+  getCurrentWeather: {
+    call: async (input: { city: string }) => {
+      // Real weather API call
+      return `Weather for ${input.city}: 22°C, sunny`;
     },
+    schema: z.object({
+      city: z.string(),
+    }),
+    description: "Gets current weather for a city",
   },
-  calculator: {
-    add: {
-      call: async (input: { a: number; b: number }) => {
-        return input.a + input.b;
-      },
-      schema: z.object({
-        a: z.number(),
-        b: z.number(),
-      }),
+  addNumbers: {
+    call: async (input: { a: number; b: number }) => {
+      return input.a + input.b;
     },
+    schema: z.object({
+      a: z.number(),
+      b: z.number(),
+    }),
+    description: "Adds two numbers together",
   },
 };
 
@@ -71,22 +69,39 @@ console.log(result); // "Weather for Istanbul: 22°C, sunny"
 
 ## 🎯 Action System
 
-Saafir's powerful feature is its nested action tree system:
+Saafir uses a simple flat action structure where each action is defined at the root level:
 
 ```typescript
 const actions = {
-  user: {
-    profile: {
-      get: { call: getUserProfile, schema: userSchema },
-      update: { call: updateUserProfile, schema: updateSchema },
+  getCurrentWeather: {
+    call: async (input: { city: string }) => {
+      return `Weather for ${input.city}: 22°C, sunny`;
     },
-    settings: {
-      theme: { call: changeTheme, schema: themeSchema },
-    },
+    schema: z.object({
+      city: z.string(),
+    }),
+    description: "Gets current weather for a city",
   },
-  data: {
-    fetch: { call: fetchData, schema: fetchSchema },
-    save: { call: saveData, schema: saveSchema },
+  addNumbers: {
+    call: async (input: { a: number; b: number }) => {
+      return input.a + input.b;
+    },
+    schema: z.object({
+      a: z.number(),
+      b: z.number(),
+    }),
+    description: "Adds two numbers together",
+  },
+  createTask: {
+    call: async (input: { title: string; description: string; priority: string }) => {
+      return `Task created: ${input.title}`;
+    },
+    schema: z.object({
+      title: z.string(),
+      description: z.string(),
+      priority: z.enum(["low", "medium", "high"]),
+    }),
+    description: "Creates a new task",
   },
 };
 ```
@@ -126,7 +141,7 @@ interface SaafirOptions {
   name: string;           // Agent name
   apiKey: string;         // OpenRouter API key
   model: string;          // Model to use (e.g., "anthropic/claude-3-haiku")
-  actions: ActionTree;    // Action definitions
+  actions: Actions;       // Flat action definitions
   context?: string;       // System prompt (default: "You are a helpful AI agent.")
   referer?: string;       // HTTP-Referer header
   title?: string;         // X-Title header
@@ -137,9 +152,13 @@ interface SaafirOptions {
 
 ```typescript
 interface ActionDefinition<TInput> {
-  call: (input: TInput) => Promise<any>;  // Function to execute
-  schema: ZodSchema<TInput>;              // Input validation schema
+  call: (input: TInput) => Promise<any>;     // Function to execute
+  schema: ZodSchema<TInput>;                 // Input validation schema
+  description: string;                       // Action description for AI
 }
+
+// Actions is a flat object mapping action names to definitions
+type Actions = Record<string, ActionDefinition<any>>;
 ```
 
 ## 🧪 Testing

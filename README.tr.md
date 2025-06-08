@@ -5,7 +5,7 @@
 ## ✨ Özellikler
 
 - 🌐 **Çoklu Model Desteği**: OpenRouter üzerinden 50+ AI modeli
-- 🎯 **Akıllı Action Sistemi**: Nested action tree yapısı
+- 🎯 **Basit Action Sistemi**: Düz action yapısı kolay yönetim için
 - 🔍 **Otomatik Intent Detection**: Kullanıcı girdisinden otomatik action belirleme
 - 📝 **Zod Schema Validation**: Tip güvenli input validasyonu  
 - 🚀 **TypeScript**: Full type safety
@@ -29,27 +29,25 @@ import { z } from 'zod';
 
 // Action'larınızı tanımlayın
 const actions = {
-  weather: {
-    getCurrentWeather: {
-      call: async (input: { city: string }) => {
-        // Gerçek hava durumu API'si çağrısı
-        return `${input.city} için hava durumu: 22°C, güneşli`;
-      },
-      schema: z.object({
-        city: z.string(),
-      }),
+  getCurrentWeather: {
+    call: async (input: { city: string }) => {
+      // Gerçek hava durumu API'si çağrısı
+      return `${input.city} için hava durumu: 22°C, güneşli`;
     },
+    schema: z.object({
+      city: z.string(),
+    }),
+    description: "Belirtilen şehrin hava durumunu getirir",
   },
-  calculator: {
-    add: {
-      call: async (input: { a: number; b: number }) => {
-        return input.a + input.b;
-      },
-      schema: z.object({
-        a: z.number(),
-        b: z.number(),
-      }),
+  addNumbers: {
+    call: async (input: { a: number; b: number }) => {
+      return input.a + input.b;
     },
+    schema: z.object({
+      a: z.number(),
+      b: z.number(),
+    }),
+    description: "İki sayıyı toplar",
   },
 };
 
@@ -69,22 +67,39 @@ console.log(result); // "İstanbul için hava durumu: 22°C, güneşli"
 
 ## 🎯 Action Sistemi
 
-Saafir'in güçlü yanı nested action tree sistemidir:
+Saafir basit ve düz bir action yapısı kullanır. Her action doğrudan kök seviyede tanımlanır:
 
 ```typescript
 const actions = {
-  user: {
-    profile: {
-      get: { call: getUserProfile, schema: userSchema },
-      update: { call: updateUserProfile, schema: updateSchema },
+  havaDurumuAl: {
+    call: async (input: { sehir: string }) => {
+      return `${input.sehir} için hava durumu: 22°C, güneşli`;
     },
-    settings: {
-      theme: { call: changeTheme, schema: themeSchema },
-    },
+    schema: z.object({
+      sehir: z.string(),
+    }),
+    description: "Belirtilen şehrin hava durumunu getirir",
   },
-  data: {
-    fetch: { call: fetchData, schema: fetchSchema },
-    save: { call: saveData, schema: saveSchema },
+  sayilariTopla: {
+    call: async (input: { a: number; b: number }) => {
+      return input.a + input.b;
+    },
+    schema: z.object({
+      a: z.number(),
+      b: z.number(),
+    }),
+    description: "İki sayıyı toplar",
+  },
+  gorevOlustur: {
+    call: async (input: { baslik: string; aciklama: string; oncelik: string }) => {
+      return `Görev oluşturuldu: ${input.baslik}`;
+    },
+    schema: z.object({
+      baslik: z.string(),
+      aciklama: z.string(),
+      oncelik: z.enum(["dusuk", "orta", "yuksek"]),
+    }),
+    description: "Yeni bir görev oluşturur",
   },
 };
 ```
