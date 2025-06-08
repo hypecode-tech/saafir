@@ -1,0 +1,51 @@
+{
+  "name": "saafir",
+  "version": "1.0.0",
+  "description": "Saafir (سفير) - Güçlü ve esnek AI agent framework'ü",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup index.ts --format cjs,esm --dts",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "openai",
+    "typescript",
+    "openrouter",
+    "chatbot",
+    "assistant",
+    "framework"
+  ],
+  "author": "Kaan Mert",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaanmert/saafir.git"
+  },
+  "homepage": "https://github.com/kaanmert/saafir#readme",
+  "bugs": {
+    "url": "https://github.com/kaanmert/saafir/issues"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.2"
+  },
+  "dependencies": {
+    "openai": "^5.1.1",
+    "zod": "^3.25.56"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
