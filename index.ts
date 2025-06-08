@@ -59,6 +59,13 @@ export class Saafir {
 
   private findAction(path: string[], current: ActionTree): ActionDefinition<any> | null {
     if (path.length === 0) return null;
+    
+    // Eğer tek bir string verilmişse, tüm tree'de ara
+    if (path.length === 1) {
+      const directResult = this.findActionByName(path[0], current);
+      if (directResult) return directResult;
+    }
+    
     const [head, ...tail] = path;
     if (!head || !(head in current)) return null;
     const next = current[head];
@@ -75,6 +82,25 @@ export class Saafir {
     // ActionTree kontrolü
     if (typeof next === 'object' && !('call' in next) && !('schema' in next)) {
       return this.findAction(tail, next as ActionTree);
+    }
+    
+    return null;
+  }
+
+  private findActionByName(actionName: string, tree: ActionTree): ActionDefinition<any> | null {
+    for (const key in tree) {
+      const value = tree[key];
+      
+      // Eğer key action adına eşitse ve bu bir ActionDefinition ise
+      if (key === actionName && 'call' in value && 'schema' in value) {
+        return value as ActionDefinition<any>;
+      }
+      
+      // Eğer bu bir ActionTree ise, recursive olarak ara
+      if (typeof value === 'object' && !('call' in value) && !('schema' in value)) {
+        const result = this.findActionByName(actionName, value as ActionTree);
+        if (result) return result;
+      }
     }
     
     return null;

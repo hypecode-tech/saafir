@@ -25,6 +25,17 @@ describe("Saafir Tests", () => {
         }),
       },
     },
+    izinler:{
+      yeniIzin:{
+        call: async (input: { tarih: string; saat: string }) => {
+          return `Yeni izin talebi oluşturuldu: ${input.tarih} tarihinde saat ${input.saat}`;
+        },
+        schema: z.object({
+          tarih: z.string(),
+          saat: z.string(),
+        }),
+      }
+    },
     calculator: {
       add: {
         call: async (input: { a: number; b: number }) => {
@@ -94,6 +105,28 @@ describe("Saafir Tests", () => {
       name: "Test Kullanıcı",
       email: "test@example.com"
     });
+  });
+
+
+  it("should find izinler yeniIzin action correctly", async () => {
+    const action = (agent as any).findAction(['izinler', 'yeniIzin'], actions);
+    expect(action).toBeDefined();
+    const result = await action?.call({ tarih: "2023-10-01", saat: "10:00" });  
+    expect(result).toBe("Yeni izin talebi oluşturuldu: 2023-10-01 tarihinde saat 10:00");
+  });
+
+  it("should find action by direct name (yeniIzin)", async () => {
+    const action = (agent as any).findAction(['yeniIzin'], actions);
+    expect(action).toBeDefined();
+    const result = await action?.call({ tarih: "2023-12-25", saat: "14:30" });  
+    expect(result).toBe("Yeni izin talebi oluşturuldu: 2023-12-25 tarihinde saat 14:30");
+  });
+
+  it("should find action by direct name (getCurrentWeather)", async () => {
+    const action = (agent as any).findAction(['getCurrentWeather'], actions);
+    expect(action).toBeDefined();
+    const result = await action?.call({ city: "Ankara" });  
+    expect(result).toBe("Hava durumu Ankara için: 22°C, güneşli");
   });
 
   it("should return null for non-existent action", async () => {
