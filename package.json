@@ -29,11 +29,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kaanmert/saafir.git"
+    "url": "https://github.com/hypecode-tech/saafir.git"
   },
-  "homepage": "https://github.com/kaanmert/saafir#readme",
+  "homepage": "https://github.com/hypecode-tech/saafir#readme",
   "bugs": {
-    "url": "https://github.com/kaanmert/saafir/issues"
+    "url": "https://github.com/hypecode-tech/saafir/issues"
   },
   "devDependencies": {
     "@types/bun": "latest",

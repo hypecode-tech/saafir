@@ -1,37 +1,41 @@
 # 🤖 Saafir (سفير) - AI Agent Framework
 
-**Saafir** (Arapça'da "elçi/büyükelçi" anlamına gelir) TypeScript ile yazılmış güçlü ve esnek bir AI agent framework'üdür. OpenRouter API'sini kullanarak Claude, ChatGPT, Gemini, Qwen, DeepSeek gibi farklı AI modelleriyle çalışabilir.
+> [🇹🇷 Türkçe README için tıklayın](README.tr.md)
 
-## ✨ Özellikler
+**Saafir** (meaning "ambassador" in Arabic) is a powerful and flexible AI agent framework written in TypeScript. It works with various AI models like Claude, ChatGPT, Gemini, Qwen, DeepSeek through the OpenRouter API.
 
-- 🌐 **Çoklu Model Desteği**: OpenRouter üzerinden 50+ AI modeli
-- 🎯 **Akıllı Action Sistemi**: Nested action tree yapısı
-- 🔍 **Otomatik Intent Detection**: Kullanıcı girdisinden otomatik action belirleme
-- 📝 **Zod Schema Validation**: Tip güvenli input validasyonu
+## ✨ Features
+
+- 🌐 **Multi-Model Support**: 50+ AI models through OpenRouter
+- 🎯 **Smart Action System**: Nested action tree structure
+- 🔍 **Automatic Intent Detection**: Automatic action determination from user input
+- 📝 **Zod Schema Validation**: Type-safe input validation
 - 🚀 **TypeScript**: Full type safety
-- 🧪 **Test Ready**: Vitest ile test edilmiş
+- 🧪 **Test Ready**: Tested with Vitest
 
-## 📦 Kurulum
+## 📦 Installation
 
 ```bash
-bun add saafir
-# veya
 npm install saafir
+# or
+yarn add saafir
+# or
+bun add saafir
 ```
 
-## 🚀 Hızlı Başlangıç
+## 🚀 Quick Start
 
 ```typescript
 import { Saafir } from 'saafir';
 import { z } from 'zod';
 
-// Action'larınızı tanımlayın
+// Define your actions
 const actions = {
   weather: {
     getCurrentWeather: {
       call: async (input: { city: string }) => {
-        // Gerçek hava durumu API'si çağrısı
-        return `${input.city} için hava durumu: 22°C, güneşli`;
+        // Real weather API call
+        return `Weather for ${input.city}: 22°C, sunny`;
       },
       schema: z.object({
         city: z.string(),
@@ -51,23 +55,23 @@ const actions = {
   },
 };
 
-// Agent'ınızı oluşturun
+// Create your agent
 const agent = new Saafir({
   name: "MyAssistant",
   apiKey: "your-openrouter-api-key", // OpenRouter API key
   model: "anthropic/claude-3-haiku",
   actions,
-  context: "Sen yardımcı bir AI asistanısın. Hava durumu ve hesaplama konularında yardım edebilirsin.",
+  context: "You are a helpful AI assistant that can help with weather and calculations.",
 });
 
-// Kullanın!
-const result = await agent.run("İstanbul'un hava durumu nasıl?");
-console.log(result); // "İstanbul için hava durumu: 22°C, güneşli"
+// Use it!
+const result = await agent.run("What's the weather like in Istanbul?");
+console.log(result); // "Weather for Istanbul: 22°C, sunny"
 ```
 
-## 🎯 Action Sistemi
+## 🎯 Action System
 
-Saafir'in güçlü yanı nested action tree sistemidir:
+Saafir's powerful feature is its nested action tree system:
 
 ```typescript
 const actions = {
@@ -87,43 +91,43 @@ const actions = {
 };
 ```
 
-## 🤖 Role Sistemi Açıklaması
+## 🤖 Role System Explanation
 
-Chat completion'larda `role` parametresi conversation'ın bağlamını belirler:
+The `role` parameter in chat completions determines the context of the conversation:
 
 ### `system` Role
-- **Amaç**: AI'ya kimliğini ve davranış kurallarını söyler
-- **Örnek**: "Sen bir hava durumu asistanısın"
-- **Ne Zaman**: Conversation başlangıcında context vermek için
+- **Purpose**: Tells the AI its identity and behavioral rules
+- **Example**: "You are a weather assistant"
+- **When**: At the beginning of conversation to provide context
 
 ### `user` Role  
-- **Amaç**: Kullanıcının gerçek sorusunu/isteğini temsil eder
-- **Örnek**: "İstanbul'un hava durumu nasıl?"
-- **Ne Zaman**: Kullanıcı input'u için
+- **Purpose**: Represents the user's actual question/request
+- **Example**: "What's the weather like in Istanbul?"
+- **When**: For user input
 
-### `assistant` Role (kullanılmamış)
-- **Amaç**: AI'nın önceki cevaplarını temsil eder
-- **Ne Zaman**: Conversation history tutmak için
+### `assistant` Role (not used)
+- **Purpose**: Represents AI's previous responses
+- **When**: To maintain conversation history
 
-Kod örneğinizde:
+In your code example:
 ```typescript
 const extractedJson = await this.chat([
-  { role: 'system', content: this.context },      // AI'ya kim olduğunu söylüyor
-  { role: 'user', content: extractionPrompt },    // Gerçek talimatı veriyor
+  { role: 'system', content: this.context },      // Tells AI who it is
+  { role: 'user', content: extractionPrompt },    // Gives the actual instruction
 ]);
 ```
 
-## 🔧 API Referansı
+## 🔧 API Reference
 
 ### Saafir Options
 
 ```typescript
 interface SaafirOptions {
-  name: string;           // Agent adı
+  name: string;           // Agent name
   apiKey: string;         // OpenRouter API key
-  model: string;          // Kullanılacak model (ör: "anthropic/claude-3-haiku")
-  actions: ActionTree;    // Action tanımları
-  context?: string;       // System prompt (varsayılan: "You are a helpful AI agent.")
+  model: string;          // Model to use (e.g., "anthropic/claude-3-haiku")
+  actions: ActionTree;    // Action definitions
+  context?: string;       // System prompt (default: "You are a helpful AI agent.")
   referer?: string;       // HTTP-Referer header
   title?: string;         // X-Title header
 }
@@ -133,32 +137,24 @@ interface SaafirOptions {
 
 ```typescript
 interface ActionDefinition<TInput> {
-  call: (input: TInput) => Promise<any>;  // Execute edilecek fonksiyon
-  schema: ZodSchema<TInput>;              // Input validation schema'sı
+  call: (input: TInput) => Promise<any>;  // Function to execute
+  schema: ZodSchema<TInput>;              // Input validation schema
 }
 ```
 
-## 🧪 Test Etme
+## 🧪 Testing
 
 ```bash
-bun test
-# veya
 npm test
+# or
+yarn test
+# or
+bun test
 ```
 
-## 📋 Import Seçenekleri
+## 📋 Supported Models
 
-```typescript
-// Ana class
-import { Saafir } from 'saafir';
-
-// Her ikisi de aynı class'tır
-const agent1 = new Saafir(options);
-```
-
-## 📋 Desteklenen Modeller
-
-OpenRouter üzerinden erişilebilen tüm modeller:
+All models accessible through OpenRouter:
 - **Anthropic**: Claude 3 Haiku, Sonnet, Opus
 - **OpenAI**: GPT-4, GPT-3.5-turbo
 - **Google**: Gemini Pro, Gemini Flash  
@@ -166,43 +162,31 @@ OpenRouter üzerinden erişilebilen tüm modeller:
 - **Mistral**: Mistral 7B, Mixtral
 - **Qwen**: Qwen-72B
 - **DeepSeek**: DeepSeek Coder
-- Ve daha fazlası...
+- And many more...
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-1. Fork'layın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit'leyin (`git commit -m 'feat: add amazing feature'`)
-4. Push'layın (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 Lisans
+## 📄 License
 
-MIT License - detaylar için [LICENSE](LICENSE) dosyasını inceleyin.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## 👤 Yazar
+## 👤 Author
 
 **Kaan Mert**
 - Email: kaanmertagyol@gmail.com
 
-## 🙏 Teşekkürler
+## 🙏 Acknowledgments
 
-- [OpenRouter](https://openrouter.ai) - Muhteşem API gateway
+- [OpenRouter](https://openrouter.ai) - Amazing API gateway
 - [Zod](https://zod.dev) - Runtime type validation
 - [Vitest](https://vitest.dev) - Lightning fast testing
 
 ---
 
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!stall dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.2.13. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+⭐ If you like this project, don't forget to give it a star!
