@@ -1,6 +1,6 @@
 {
   "name": "saafir",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Saafir (سفير) - Güçlü ve esnek AI agent framework'ü",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
