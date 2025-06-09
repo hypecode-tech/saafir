@@ -198,6 +198,164 @@ Do not include any other text, explanations, or markdown. Return only JSON.`;
     }
   }
 
+  private preprocessParameters(parameters: any, schema: z.Schema<any>): any {
+    // Eğer schema bir object değilse, direk döndür / If schema is not an object, return directly
+    if (!(schema instanceof z.ZodObject)) {
+      return parameters;
+    }
+
+    const processed = { ...parameters };
+    const shape = schema.shape;
+
+    // Her property için kontrol et / Check each property
+    Object.keys(shape).forEach(key => {
+      const fieldSchema = shape[key];
+      
+      // String to Date conversion - AI'dan gelen string tarihlerini Date objesine çevir
+      // String to Date conversion - Convert string dates from AI to Date objects
+      if (fieldSchema instanceof z.ZodDate && 
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = new Date(processed[key]);
+        } catch (error) {
+          // Date parsing başarısız olursa orijinal değeri koru / Keep original value if date parsing fails
+          this.debugLog('WARNING', `Date conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+      
+      // Optional Date conversion - Eğer optional bir date ise / If it's an optional date
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodDate &&
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = new Date(processed[key]);
+        } catch (error) {
+          this.debugLog('WARNING', `Optional date conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // String to Boolean conversion - AI'dan gelen string boolean'ları boolean'a çevir
+      // String to Boolean conversion - Convert string booleans from AI to boolean
+      if (fieldSchema instanceof z.ZodBoolean && 
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        const stringValue = processed[key].toLowerCase();
+        if (stringValue === 'true' || stringValue === '1' || stringValue === 'yes') {
+          processed[key] = true;
+        } else if (stringValue === 'false' || stringValue === '0' || stringValue === 'no') {
+          processed[key] = false;
+        } else {
+          this.debugLog('WARNING', `Boolean conversion failed for field ${key}`, { 
+            originalValue: processed[key] 
+          });
+        }
+      }
+
+      // Optional Boolean conversion - Eğer optional bir boolean ise / If it's an optional boolean
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodBoolean &&
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        const stringValue = processed[key].toLowerCase();
+        if (stringValue === 'true' || stringValue === '1' || stringValue === 'yes') {
+          processed[key] = true;
+        } else if (stringValue === 'false' || stringValue === '0' || stringValue === 'no') {
+          processed[key] = false;
+        } else {
+          this.debugLog('WARNING', `Optional boolean conversion failed for field ${key}`, { 
+            originalValue: processed[key] 
+          });
+        }
+      }
+
+      // String to Array conversion - AI'dan gelen string array'leri array'e çevir
+      // String to Array conversion - Convert string arrays from AI to array
+      if (fieldSchema instanceof z.ZodArray && 
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          // JSON string olarak parse etmeyi dene / Try to parse as JSON string
+          processed[key] = JSON.parse(processed[key]);
+        } catch (error) {
+          // JSON parse edilemezse virgülle ayrılmış string olarak dene / If JSON parsing fails, try comma-separated string
+          try {
+            processed[key] = processed[key].split(',').map((item: string) => item.trim());
+          } catch (splitError) {
+            this.debugLog('WARNING', `Array conversion failed for field ${key}`, { 
+              originalValue: processed[key], 
+              error 
+            });
+          }
+        }
+      }
+
+      // Optional Array conversion - Eğer optional bir array ise / If it's an optional array
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodArray &&
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = JSON.parse(processed[key]);
+        } catch (error) {
+          try {
+            processed[key] = processed[key].split(',').map((item: string) => item.trim());
+          } catch (splitError) {
+            this.debugLog('WARNING', `Optional array conversion failed for field ${key}`, { 
+              originalValue: processed[key], 
+              error 
+            });
+          }
+        }
+      }
+
+      // String to Object conversion - AI'dan gelen string object'leri object'e çevir
+      // String to Object conversion - Convert string objects from AI to object
+      if (fieldSchema instanceof z.ZodObject && 
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = JSON.parse(processed[key]);
+        } catch (error) {
+          this.debugLog('WARNING', `Object conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // Optional Object conversion - Eğer optional bir object ise / If it's an optional object
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodObject &&
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = JSON.parse(processed[key]);
+        } catch (error) {
+          this.debugLog('WARNING', `Optional object conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // TODO: İleride başka dönüşümler buraya eklenebilir
+      // TODO: Future conversions can be added here
+      // - Number conversions (string → number)
+      // - Custom transformations
+      // - Nested object preprocessing
+    });
+
+    return processed;
+  }
+
   public async run(input: string): Promise<any> {
     try {
       this.debugLog('INIT', 'Starting Saafir execution', {
@@ -217,7 +375,11 @@ Do not include any other text, explanations, or markdown. Return only JSON.`;
       }
 
       this.debugLog('VALIDATION', 'Validating parameters with schema');
-      const validatedParams = action.schema.parse(parameters);
+      
+      // AI'dan gelen parametreleri ön işleme tabi tut / Preprocess parameters from AI
+      const processedParams = this.preprocessParameters(parameters, action.schema);
+      
+      const validatedParams = action.schema.parse(processedParams);
 
       this.debugLog('EXECUTION', 'Executing action', {
         actionName,
