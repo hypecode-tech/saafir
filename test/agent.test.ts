@@ -1,5 +1,5 @@
 import { Saafir } from "../index";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { describe, it, expect } from "vitest";
 
 describe("Saafir AI Integration Tests", () => {
@@ -368,7 +368,7 @@ describe("Saafir AI Integration Tests", () => {
   });
 
   describe("Real API Tests", () => {
-    const realApiKey = process.env.OPENROUTER_API_KEY;
+    const realApiKey = process.env.SAAFIR_API_KEY;
 
     // Skip real API tests if no API key is provided
     const describeRealTests = realApiKey ? describe : describe.skip;
@@ -389,8 +389,9 @@ describe("Saafir AI Integration Tests", () => {
         expect(typeof result).toBe("string");
         expect(result.length).toBeGreaterThan(0);
       }, 30000);
-
-      it("Real API: Turkish math operation", async () => {
+      
+      // Commented out to prevent unnecessary credit usage
+      /*it("Real API: Turkish math operation", async () => {
         const realAgent = new Saafir({
           name: "RealTestAsistan",
           apiKey: realApiKey!,
@@ -470,9 +471,10 @@ describe("Saafir AI Integration Tests", () => {
         const result = await realAgent.run("Yüksek öncelikli 'Veritabanı optimizasyonu' başlıklı ve 'Sorgu performansı iyileştirilecek' açıklamalı görev oluştur");
         expect(typeof result).toBe("string");
         expect(result.length).toBeGreaterThan(0);
-      }, 30000);
+      }, 30000);*/
 
-      it("Real API: Complex English task creation", async () => {
+      // Commented out to prevent unnecessary credit usage
+      /*it("Real API: Complex English task creation", async () => {
         const complexActions = {
           createTask: {
             call: async (input: {
@@ -504,7 +506,7 @@ describe("Saafir AI Integration Tests", () => {
       const result = await realAgent.run("Create a medium priority task called 'API Documentation' with description 'Update REST API documentation with new endpoints'");
       expect(typeof result).toBe("string");
       expect(result.length).toBeGreaterThan(0);
-    }, 30000);
+    }, 30000);*/
     });
   });
 });

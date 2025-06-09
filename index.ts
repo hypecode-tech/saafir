@@ -1,5 +1,6 @@
 import OpenAI from "openai";
-import { z } from "zod/v4";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 // Renkli console çıktısı için / For colorful console output
 import chalk from "chalk";
 
@@ -7,7 +8,7 @@ export type ActionFunction<TInput> = (input: TInput) => Promise<any>;
 
 export interface ActionDefinition<TInput> {
   call: ActionFunction<TInput>;
-  schema: z.ZodType<TInput>;
+  schema: z.Schema<TInput>;
   description?: string; // Açıklama alanı (isteğe bağlı) / Description field (optional)
 }
 
@@ -52,7 +53,7 @@ export class Saafir {
         return {
           name,
           description: action.description || "No description available.",
-          schema: z.toJSONSchema(action.schema, { io: "input" }),
+          schema: zodToJsonSchema(action.schema),
         };
       }
     );
@@ -118,7 +119,7 @@ ${actionsMetadata
     const actionListStr = Object.entries(this.actions)
       .map(
         ([name, action]) => {
-          return `Action: "${name}"\nDescription: ${action.description || "No description available"}\nSchema: ${JSON.stringify(z.toJSONSchema(action.schema, { io: "input" }))}`;
+          return `Action: "${name}"\nDescription: ${action.description || "No description available"}\nSchema: ${JSON.stringify(zodToJsonSchema(action.schema))}`;
         }
       )
       .join("\n\n");
@@ -133,7 +134,7 @@ ${actionsMetadata
       console.log(chalk.yellow.bold('🔍 ACTION DETAILS:'));
       Object.entries(this.actions).forEach(([name, action]) => {
         console.log(chalk.blue(`  • ${name}:`), action.description || "No description available");
-        console.log(chalk.gray(`    Schema: ${JSON.stringify(z.toJSONSchema(action.schema, { io: "input" }))}`));
+        console.log(chalk.gray(`    Schema: ${JSON.stringify(zodToJsonSchema(action.schema))}`));
       });
       console.log(chalk.gray('─'.repeat(60)));
     }
