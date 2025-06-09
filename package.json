@@ -1,6 +1,6 @@
 {
   "name": "saafir",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Saafir (سفير) - Strong and Customizable AI Agent Framework for OpenAI and OpenRouter",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
