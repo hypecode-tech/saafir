@@ -353,6 +353,177 @@ Do not include any other text, explanations, or markdown. Return only JSON.`;
       // - Number conversions (string → number)
       // - Custom transformations
       // - Nested object preprocessing
+
+      // String to Number conversion - AI'dan gelen string sayıları number'a çevir
+      // String to Number conversion - Convert string numbers from AI to number
+      if (fieldSchema instanceof z.ZodNumber && 
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        const numValue = Number(processed[key]);
+        if (!isNaN(numValue)) {
+          processed[key] = numValue;
+        } else {
+          this.debugLog('WARNING', `Number conversion failed for field ${key}`, { 
+            originalValue: processed[key] 
+          });
+        }
+      }
+
+      // Optional Number conversion - Eğer optional bir number ise / If it's an optional number
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodNumber &&
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        const numValue = Number(processed[key]);
+        if (!isNaN(numValue)) {
+          processed[key] = numValue;
+        } else {
+          this.debugLog('WARNING', `Optional number conversion failed for field ${key}`, { 
+            originalValue: processed[key] 
+          });
+        }
+      }
+
+      // String to BigInt conversion - AI'dan gelen string bigint'leri bigint'e çevir
+      // String to BigInt conversion - Convert string bigints from AI to bigint
+      if (fieldSchema instanceof z.ZodBigInt && 
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = BigInt(processed[key]);
+        } catch (error) {
+          this.debugLog('WARNING', `BigInt conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // Optional BigInt conversion - Eğer optional bir bigint ise / If it's an optional bigint
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodBigInt &&
+          processed[key] !== undefined && 
+          typeof processed[key] === 'string') {
+        try {
+          processed[key] = BigInt(processed[key]);
+        } catch (error) {
+          this.debugLog('WARNING', `Optional bigint conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // String to Map conversion - AI'dan gelen string map'leri Map objesine çevir
+      // String to Map conversion - Convert string maps from AI to Map object
+      if (fieldSchema instanceof z.ZodMap && 
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          const parsed = JSON.parse(processed[key]);
+          if (Array.isArray(parsed)) {
+            // Array of [key, value] pairs formatında gelirse / If it comes as array of [key, value] pairs
+            processed[key] = new Map(parsed);
+          } else if (typeof parsed === 'object') {
+            // Object formatında gelirse / If it comes as object format
+            processed[key] = new Map(Object.entries(parsed));
+          }
+        } catch (error) {
+          this.debugLog('WARNING', `Map conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // Optional Map conversion - Eğer optional bir map ise / If it's an optional map
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodMap &&
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          const parsed = JSON.parse(processed[key]);
+          if (Array.isArray(parsed)) {
+            processed[key] = new Map(parsed);
+          } else if (typeof parsed === 'object') {
+            processed[key] = new Map(Object.entries(parsed));
+          }
+        } catch (error) {
+          this.debugLog('WARNING', `Optional map conversion failed for field ${key}`, { 
+            originalValue: processed[key], 
+            error 
+          });
+        }
+      }
+
+      // String to Set conversion - AI'dan gelen string set'leri Set objesine çevir
+      // String to Set conversion - Convert string sets from AI to Set object
+      if (fieldSchema instanceof z.ZodSet && 
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          const parsed = JSON.parse(processed[key]);
+          if (Array.isArray(parsed)) {
+            processed[key] = new Set(parsed);
+          }
+        } catch (error) {
+          // JSON parse edilemezse virgülle ayrılmış string olarak dene / If JSON parsing fails, try comma-separated string
+          try {
+            const items = processed[key].split(',').map((item: string) => item.trim());
+            processed[key] = new Set(items);
+          } catch (splitError) {
+            this.debugLog('WARNING', `Set conversion failed for field ${key}`, { 
+              originalValue: processed[key], 
+              error 
+            });
+          }
+        }
+      }
+
+      // Optional Set conversion - Eğer optional bir set ise / If it's an optional set
+      if (fieldSchema instanceof z.ZodOptional && 
+          fieldSchema._def.innerType instanceof z.ZodSet &&
+          processed[key] && 
+          typeof processed[key] === 'string') {
+        try {
+          const parsed = JSON.parse(processed[key]);
+          if (Array.isArray(parsed)) {
+            processed[key] = new Set(parsed);
+          }
+        } catch (error) {
+          try {
+            const items = processed[key].split(',').map((item: string) => item.trim());
+            processed[key] = new Set(items);
+          } catch (splitError) {
+            this.debugLog('WARNING', `Optional set conversion failed for field ${key}`, { 
+              originalValue: processed[key], 
+              error 
+            });
+          }
+        }
+      }
+
+      // Special values handling - Özel değerler (null, undefined, NaN) / Special values (null, undefined, NaN)
+      if (typeof processed[key] === 'string') {
+        const lowerValue = processed[key].toLowerCase();
+        
+        // null conversion
+        if (lowerValue === 'null') {
+          processed[key] = null;
+        }
+        
+        // undefined conversion (fieldSchema null veya undefined kabul ediyorsa) / undefined conversion (if schema accepts null or undefined)
+        else if (lowerValue === 'undefined') {
+          processed[key] = undefined;
+        }
+        
+        // NaN conversion (number fieldları için) / NaN conversion (for number fields)
+        else if (lowerValue === 'nan' && 
+                 (fieldSchema instanceof z.ZodNumber || 
+                  (fieldSchema instanceof z.ZodOptional && fieldSchema._def.innerType instanceof z.ZodNumber))) {
+          processed[key] = NaN;
+        }
+      }
     });
 
     return processed;
