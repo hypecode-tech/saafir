@@ -151,6 +151,7 @@ IMPORTANT:
 - Action names and parameter names must remain exactly as defined in the schema
 - Only the response text should be in ${this.language}
 - Parameter values should match the schema types exactly
+- Make sure ISO date strings are strictly valid (e.g., 'YYYY-MM-DDTHH:MM:SSZ' where SS is max 59)
 
 Return only a JSON in the following format:
 - "actionName": string, the exact name of the selected action
